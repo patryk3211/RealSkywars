@@ -26,12 +26,7 @@ import joserodpt.realskywars.api.player.RSWPlayer;
 import joserodpt.realskywars.api.shop.RSWBuyableItem;
 import joserodpt.realskywars.api.utils.Text;
 import joserodpt.realskywars.plugin.gui.GUIManager;
-import joserodpt.realskywars.plugin.gui.guis.MapSettingsGUI;
-import joserodpt.realskywars.plugin.gui.guis.MapsListGUI;
-import joserodpt.realskywars.plugin.gui.guis.PlayerGUI;
-import joserodpt.realskywars.plugin.gui.guis.PlayerItemsGUI;
-import joserodpt.realskywars.plugin.gui.guis.ShopGUI;
-import joserodpt.realskywars.plugin.gui.guis.VoteGUI;
+import joserodpt.realskywars.plugin.gui.guis.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -135,6 +130,14 @@ public class PlayerListener implements Listener {
                         } else if (e.getPlayer().getInventory().getItemInMainHand() != null && e.getPlayer().getInventory().getItemInMainHand().getType() == Material.CHEST_MINECART) {
                             p.getPlayer().performCommand("rsw finish");
                             return;
+                        } else if(e.getClickedBlock() != null && e.getClickedBlock().getState() instanceof Chest) {
+                            RSWMap map = rs.getMapManagerAPI().getMap(p.getPlayer().getWorld());
+                            RSWChest chest = map.getChest(e.getClickedBlock().getLocation()); //p.getMatch().getChest(e.getClickedBlock().getLocation());
+
+                            ChestSettingsGUI gui = new ChestSettingsGUI(p, map, chest);
+                            gui.openInventory(p);
+                            e.setCancelled(true);
+                            return;
                         }
                     }
                     if (p.isInMatch()) {
@@ -155,51 +158,13 @@ public class PlayerListener implements Listener {
                                     rs.getPlayerManagerAPI().trackPlayer(p);
                                 }
                                 break;
-                            case CAGE:
-                                switch (e.getPlayer().getInventory().getItemInMainHand().getType()) {
-                                    case BOW:
-                                        e.setCancelled(true);
-                                        PlayerItemsGUI v = new PlayerItemsGUI(p, RSWBuyableItem.ItemCategory.KIT);
-                                        v.openInventory(p);
-                                        e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 50, 50);
-                                        break;
-                                    case MINECART:
-                                        e.setCancelled(true);
-                                        p.getMatch().removePlayer(p);
-                                        break;
-                                    case HOPPER:
-                                        e.setCancelled(true);
-
-                                        if (p.getMatch().getStartMapTimer() != null) {
-                                            if (p.getMatch().getStartMapTimer().getSecondsLeft() > RSWConfig.file().getInt("Config.Vote-Before-Seconds")) {
-                                                VoteGUI vg = new VoteGUI(p);
-                                                vg.openInventory(p.getPlayer());
-                                            } else {
-                                                TranslatableLine.CANT_VOTE.send(p, true);
-                                            }
-                                        } else {
-                                            VoteGUI vg = new VoteGUI(p);
-                                            vg.openInventory(p.getPlayer());
-                                        }
-
-                                        break;
-                                }
-                                break;
                             case SPECTATOR:
                             case EXTERNAL_SPECTATOR:
                                 switch (e.getPlayer().getInventory().getItemInMainHand().getType()) {
-                                    case TOTEM_OF_UNDYING:
-                                        e.setCancelled(true);
-                                        e.getPlayer().performCommand("rsw play " + p.getMatch().getGameMode().name());
-                                        break;
                                     case MAP:
                                         e.setCancelled(true);
                                         e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 50, 50);
                                         GUIManager.openSpectate(p);
-                                        break;
-                                    case MINECART:
-                                        e.setCancelled(true);
-                                        p.getMatch().removePlayer(p);
                                         break;
                                     case EMERALD:
                                         e.setCancelled(true);
@@ -247,12 +212,6 @@ public class PlayerListener implements Listener {
                             case BOOK:
                                 e.setCancelled(true);
                                 GUIManager.openPlayerProfile(p);
-                                e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 50, 50);
-                                break;
-                            case NETHER_STAR:
-                                e.setCancelled(true);
-                                MapsListGUI v = new MapsListGUI(p);
-                                v.openInventory(p);
                                 e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 50, 50);
                                 break;
                             case EMERALD:
@@ -308,7 +267,9 @@ public class PlayerListener implements Listener {
                 case CAGE:
                     event.setCancelled(true);
                 case LOBBY_OR_NOGAME:
-                    if (rs.getLobbyManagerAPI().isInLobby(p.getLocation().getWorld())) {
+                    // Allow block breaking in lobby for OPs
+                    if (rs.getLobbyManagerAPI().isInLobby(p.getLocation().getWorld()) &&
+                        !(event.getPlayer().isOp() || event.getPlayer().hasPermission("rsw.admin"))) {
                         event.setCancelled(true);
                     }
                     break;

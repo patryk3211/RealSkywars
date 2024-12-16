@@ -44,11 +44,7 @@ public class PartyCMD extends CommandBase {
     @Default
     @SuppressWarnings("unused")
     public void defaultCommand(final CommandSender commandSender) {
-        if (commandSender instanceof Player) {
-            Text.sendList(commandSender, Arrays.asList(rs.getLanguageManagerAPI().getPrefix(), " &3/party create", " &3/party disband", " &3/party invite <player>", " &3/party accept <player>", " &3/party kick <player>", " &3/party leave"));
-        } else {
-            commandSender.sendMessage(onlyPlayer);
-        }
+        commandSender.sendMessage("No u");
     }
 
     @SubCommand("create")

@@ -45,48 +45,48 @@ public class ShopManager extends ShopManagerAPI {
     public void loadShopItems() {
         shopItems.clear();
 
-        if (RSWShopsConfig.file().contains("Main-Shop")
-                || RSWShopsConfig.file().getInt("Version") == 1
-                || RSWShopsConfig.file().getInt("Version") == 2) {
-            rs.getLogger().warning("Starting upgrade of Shop Items to new config format...");
-            upgradeV2toV3();
-            RSWShopsConfig.file().remove("Main-Shop");
-            RSWShopsConfig.file().remove("Spectator-Shop");
-            RSWShopsConfig.file().set("Version", 3);
-            RSWShopsConfig.save();
-            return;
-        }
-
-        for (String category : RSWShopsConfig.file().getSection("Shops").getRoutesAsStrings(false)) {
-            RSWBuyableItem.ItemCategory cat = RSWBuyableItem.ItemCategory.getCategoryByName(category);
-            for (String item : RSWShopsConfig.file().getSection("Shops." + category).getRoutesAsStrings(false)) {
-                //verify if item already exists
-                if (shopItems.containsKey(item)) {
-                    rs.getLogger().warning("Item " + item + " already exists in the shop! Skipping.");
-                    continue;
-                }
-
-                String displayname = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Displayname");
-                String material = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Material");
-                double price = RSWShopsConfig.file().getDouble("Shops." + category + "." + item + ".Price");
-                String permission = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Permission");
-                Map<String, Object> extras = new HashMap<>();
-                if (RSWShopsConfig.file().contains("Shops." + category + "." + item + ".Extras")) {
-                    for (String extra : RSWShopsConfig.file().getSection("Shops." + category + "." + item + ".Extras").getRoutesAsStrings(false)) {
-                        extras.put(extra, RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Extras." + extra));
-                    }
-                }
-
-                RSWBuyableItem buyableItem;
-                if (cat == RSWBuyableItem.ItemCategory.BOW_PARTICLE) {
-                    String particle = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Extras.Particle");
-                    buyableItem = new RSWParticleItem(item, displayname, Material.valueOf(material), price, permission, particle);
-                } else {
-                    buyableItem = new RSWBuyableItem(item, displayname, Material.valueOf(material), price, permission, cat, extras);
-                }
-                shopItems.put(item, buyableItem);
-            }
-        }
+//        if (RSWShopsConfig.file().contains("Main-Shop")
+//                || RSWShopsConfig.file().getInt("Version") == 1
+//                || RSWShopsConfig.file().getInt("Version") == 2) {
+//            rs.getLogger().warning("Starting upgrade of Shop Items to new config format...");
+//            upgradeV2toV3();
+//            RSWShopsConfig.file().remove("Main-Shop");
+//            RSWShopsConfig.file().remove("Spectator-Shop");
+//            RSWShopsConfig.file().set("Version", 3);
+//            RSWShopsConfig.save();
+//            return;
+//        }
+//
+//        for (String category : RSWShopsConfig.file().getSection("Shops").getRoutesAsStrings(false)) {
+//            RSWBuyableItem.ItemCategory cat = RSWBuyableItem.ItemCategory.getCategoryByName(category);
+//            for (String item : RSWShopsConfig.file().getSection("Shops." + category).getRoutesAsStrings(false)) {
+//                //verify if item already exists
+//                if (shopItems.containsKey(item)) {
+//                    rs.getLogger().warning("Item " + item + " already exists in the shop! Skipping.");
+//                    continue;
+//                }
+//
+//                String displayname = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Displayname");
+//                String material = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Material");
+//                double price = RSWShopsConfig.file().getDouble("Shops." + category + "." + item + ".Price");
+//                String permission = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Permission");
+//                Map<String, Object> extras = new HashMap<>();
+//                if (RSWShopsConfig.file().contains("Shops." + category + "." + item + ".Extras")) {
+//                    for (String extra : RSWShopsConfig.file().getSection("Shops." + category + "." + item + ".Extras").getRoutesAsStrings(false)) {
+//                        extras.put(extra, RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Extras." + extra));
+//                    }
+//                }
+//
+//                RSWBuyableItem buyableItem;
+//                if (cat == RSWBuyableItem.ItemCategory.BOW_PARTICLE) {
+//                    String particle = RSWShopsConfig.file().getString("Shops." + category + "." + item + ".Extras.Particle");
+//                    buyableItem = new RSWParticleItem(item, displayname, Material.valueOf(material), price, permission, particle);
+//                } else {
+//                    buyableItem = new RSWBuyableItem(item, displayname, Material.valueOf(material), price, permission, cat, extras);
+//                }
+//                shopItems.put(item, buyableItem);
+//            }
+//        }
     }
 
     private void upgradeV2toV3() {

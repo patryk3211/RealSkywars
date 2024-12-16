@@ -43,40 +43,40 @@ public class AchievementsManager extends AchievementsManagerAPI {
         int cats = 0, achi = 0;
         this.achievements.clear();
         //load coin achievements
-        for (String dir : RSWAchievementsConfig.file().getSection("Coins").getRoutesAsStrings(false).stream()
-                .map(Object::toString)
-                .collect(Collectors.toSet())) {
-            ++cats;
-            RSWPlayer.PlayerStatistics t = null;
-
-            switch (dir) {
-                case "Kills":
-                    t = RSWPlayer.PlayerStatistics.KILLS;
-                    break;
-                case "Wins-Solo":
-                    t = RSWPlayer.PlayerStatistics.WINS_SOLO;
-                    break;
-                case "Wins-Teams":
-                    t = RSWPlayer.PlayerStatistics.WINS_TEAMS;
-                    break;
-                case "Games-Played":
-                    t = RSWPlayer.PlayerStatistics.GAMES_PLAYED;
-                    break;
-            }
-
-            List<RSWAchievement> achiv = new ArrayList<>();
-
-            String path = "Coins." + dir;
-            for (String meta : RSWAchievementsConfig.file().getSection(path).getRoutesAsStrings(false)) {
-                ++achi;
-                Double value = RSWAchievementsConfig.file().getDouble(path + "." + meta);
-                achiv.add(new RSWAchievementRCoin(t, Integer.parseInt(meta), value));
-            }
-
-            this.achievements.put(t, achiv);
-        }
-
-        rs.getLogger().info("Loaded " + achi + " rewards for " + cats + " coin categories.");
+//        for (String dir : RSWAchievementsConfig.file().getSection("Coins").getRoutesAsStrings(false).stream()
+//                .map(Object::toString)
+//                .collect(Collectors.toSet())) {
+//            ++cats;
+//            RSWPlayer.PlayerStatistics t = null;
+//
+//            switch (dir) {
+//                case "Kills":
+//                    t = RSWPlayer.PlayerStatistics.KILLS;
+//                    break;
+//                case "Wins-Solo":
+//                    t = RSWPlayer.PlayerStatistics.WINS_SOLO;
+//                    break;
+//                case "Wins-Teams":
+//                    t = RSWPlayer.PlayerStatistics.WINS_TEAMS;
+//                    break;
+//                case "Games-Played":
+//                    t = RSWPlayer.PlayerStatistics.GAMES_PLAYED;
+//                    break;
+//            }
+//
+//            List<RSWAchievement> achiv = new ArrayList<>();
+//
+//            String path = "Coins." + dir;
+//            for (String meta : RSWAchievementsConfig.file().getSection(path).getRoutesAsStrings(false)) {
+//                ++achi;
+//                Double value = RSWAchievementsConfig.file().getDouble(path + "." + meta);
+//                achiv.add(new RSWAchievementRCoin(t, Integer.parseInt(meta), value));
+//            }
+//
+//            this.achievements.put(t, achiv);
+//        }
+//
+//        rs.getLogger().info("Loaded " + achi + " rewards for " + cats + " coin categories.");
     }
 
     @Override

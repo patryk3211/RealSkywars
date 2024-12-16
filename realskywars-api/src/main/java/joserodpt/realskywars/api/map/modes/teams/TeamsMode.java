@@ -17,6 +17,7 @@ package joserodpt.realskywars.api.map.modes.teams;
 
 import joserodpt.realskywars.api.cages.RSWCage;
 import joserodpt.realskywars.api.chests.RSWChest;
+import joserodpt.realskywars.api.chests.RSWGroupedChest;
 import joserodpt.realskywars.api.config.RSWConfig;
 import joserodpt.realskywars.api.config.TranslatableLine;
 import joserodpt.realskywars.api.config.TranslatableList;
@@ -44,15 +45,15 @@ public class TeamsMode extends RSWMap {
     private final Map<Location, RSWTeam> teams;
 
     public TeamsMode(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, int teamsNumber, int playersPerTeam) {
-        super(nome, displayName, w, schematicName, wt, MapState.RESETTING, teamsNumber * playersPerTeam, null, true, false, true, null, null, new HashMap<>(), false, true);
+        super(nome, displayName, w, schematicName, wt, MapState.RESETTING, teamsNumber * playersPerTeam, null, true, false, true, null, null, new HashMap<>(), new HashMap<>(), false, true);
 
         this.teams = new HashMap<>();
         this.maxMembersTeam = playersPerTeam;
         this.maxTeamsNumber = teamsNumber;
     }
 
-    public TeamsMode(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, Map<Location, RSWTeam> teams, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean border, Location pos1, Location pos2, Map<Location, RSWChest> chests, Boolean rankd, Boolean unregistered) {
-        super(nome, displayName, w, schematicName, wt, estado, maxPlayers, spectatorLocation, specEnabled, instantEnding, border, pos1, pos2, chests, rankd, unregistered);
+    public TeamsMode(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, Map<Location, RSWTeam> teams, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean border, Location pos1, Location pos2, Map<Location, RSWChest> chests, Map<Integer, RSWGroupedChest.Group> chestGroups, Boolean rankd, Boolean unregistered) {
+        super(nome, displayName, w, schematicName, wt, estado, maxPlayers, spectatorLocation, specEnabled, instantEnding, border, pos1, pos2, chests, chestGroups, rankd, unregistered);
 
         this.teams = teams;
         this.teams.values().forEach(rswTeam -> rswTeam.getTeamCage().setMap(this));

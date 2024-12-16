@@ -43,23 +43,14 @@ import joserodpt.realskywars.api.nms.NMS118R2andUP;
 import joserodpt.realskywars.api.utils.GUIBuilder;
 import joserodpt.realskywars.api.utils.PlayerInput;
 import joserodpt.realskywars.api.utils.Text;
+import joserodpt.realskywars.api.utils.TournamentUtils;
 import joserodpt.realskywars.plugin.commands.PartyCMD;
 import joserodpt.realskywars.plugin.commands.RealSkywarsCMD;
 import joserodpt.realskywars.plugin.commands.SairCMD;
+import joserodpt.realskywars.plugin.commands.TournamentCMD;
 import joserodpt.realskywars.plugin.currency.LocalCurrencyAdapter;
 import joserodpt.realskywars.plugin.currency.VaultCurrencyAdapter;
-import joserodpt.realskywars.plugin.gui.guis.AchievementViewerGUI;
-import joserodpt.realskywars.plugin.gui.guis.GameHistoryGUI;
-import joserodpt.realskywars.plugin.gui.guis.KitSettingsGUI;
-import joserodpt.realskywars.plugin.gui.guis.MapDashboardGUI;
-import joserodpt.realskywars.plugin.gui.guis.MapEventEditorGUI;
-import joserodpt.realskywars.plugin.gui.guis.MapSettingsGUI;
-import joserodpt.realskywars.plugin.gui.guis.MapsListGUI;
-import joserodpt.realskywars.plugin.gui.guis.PlayerGUI;
-import joserodpt.realskywars.plugin.gui.guis.PlayerItemsGUI;
-import joserodpt.realskywars.plugin.gui.guis.SettingsGUI;
-import joserodpt.realskywars.plugin.gui.guis.ShopGUI;
-import joserodpt.realskywars.plugin.gui.guis.VoteGUI;
+import joserodpt.realskywars.plugin.gui.guis.*;
 import joserodpt.realskywars.plugin.listeners.EventListener;
 import joserodpt.realskywars.plugin.listeners.PlayerListener;
 import joserodpt.realskywars.plugin.managers.DatabaseManager;
@@ -158,11 +149,15 @@ public class RealSkywarsPlugin extends JavaPlugin {
         pm.registerEvents(PlayerItemsGUI.getListener(), this);
         pm.registerEvents(KitSettingsGUI.getListener(), this);
         pm.registerEvents(MapsListGUI.getListener(), this);
+        pm.registerEvents(TournamentMapsListGUI.getListener(), this);
+        pm.registerEvents(ChestSettingsGUI.getListener(), this);
         pm.registerEvents(TierViewer.getListener(), this);
         pm.registerEvents(AchievementViewerGUI.getListener(), this);
         pm.registerEvents(GameHistoryGUI.getListener(), this);
         pm.registerEvents(VoteGUI.getListener(), this);
         pm.registerEvents(SettingsGUI.getListener(), this);
+
+        TournamentUtils.init();
 
         realSkywars.getShopManagerAPI().loadShopItems();
         realSkywars.getKitManagerAPI().loadKits();
@@ -252,7 +247,7 @@ public class RealSkywarsPlugin extends JavaPlugin {
         commandManager.getMessageHandler().register("cmd.wrong.usage", sender -> sender.sendMessage(realSkywars.getLanguageManagerAPI().getPrefix() + Text.color("&cWrong usage for the command!")));
 
         //registo de comandos #portugal
-        commandManager.register(new RealSkywarsCMD(realSkywars), new SairCMD(realSkywars), new PartyCMD(realSkywars));
+        commandManager.register(new RealSkywarsCMD(realSkywars), new SairCMD(realSkywars), new PartyCMD(realSkywars), new TournamentCMD(realSkywars));
 
         //placeholderAPI support
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {

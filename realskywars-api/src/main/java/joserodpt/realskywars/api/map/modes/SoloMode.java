@@ -18,6 +18,7 @@ package joserodpt.realskywars.api.map.modes;
 import joserodpt.realskywars.api.cages.RSWCage;
 import joserodpt.realskywars.api.cages.RSWSoloCage;
 import joserodpt.realskywars.api.chests.RSWChest;
+import joserodpt.realskywars.api.chests.RSWGroupedChest;
 import joserodpt.realskywars.api.config.RSWConfig;
 import joserodpt.realskywars.api.config.TranslatableLine;
 import joserodpt.realskywars.api.config.TranslatableList;
@@ -47,12 +48,12 @@ public class SoloMode extends RSWMap {
 
     //para dar setup
     public SoloMode(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, int maxPlayers) {
-        super(nome.replace(".schematic", "").replace(".schem", ""), displayName.replace(".schematic", "").replace(".schem", ""), w, schematicName, wt, MapState.RESETTING, maxPlayers, null, true, false, true, null, null, new HashMap<>(), false, true);
+        super(nome.replace(".schematic", "").replace(".schem", ""), displayName.replace(".schematic", "").replace(".schem", ""), w, schematicName, wt, MapState.RESETTING, maxPlayers, null, true, false, true, null, null, new HashMap<>(), new HashMap<>(), false, true);
         this.cages = new HashMap<>();
     }
 
-    public SoloMode(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, Map<Location, RSWCage> cages, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean border, Location pos1, Location pos2, Map<Location, RSWChest> chests, Boolean rankd, Boolean unregistered) {
-        super(nome, displayName, w, schematicName, wt, estado, maxPlayers, spectatorLocation, specEnabled, instantEnding, border, pos1, pos2, chests, rankd, unregistered);
+    public SoloMode(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, Map<Location, RSWCage> cages, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean border, Location pos1, Location pos2, Map<Location, RSWChest> chests, Map<Integer, RSWGroupedChest.Group> chestGroups, Boolean rankd, Boolean unregistered) {
+        super(nome, displayName, w, schematicName, wt, estado, maxPlayers, spectatorLocation, specEnabled, instantEnding, border, pos1, pos2, chests, chestGroups, rankd, unregistered);
         this.cages = cages;
         this.cages.forEach((location, rswCage) -> rswCage.setMap(this));
     }

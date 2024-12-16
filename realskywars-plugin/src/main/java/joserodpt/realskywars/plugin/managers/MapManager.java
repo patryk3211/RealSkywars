@@ -22,6 +22,7 @@ import joserodpt.realskywars.api.RealSkywarsAPI;
 import joserodpt.realskywars.api.cages.RSWCage;
 import joserodpt.realskywars.api.cages.RSWSoloCage;
 import joserodpt.realskywars.api.chests.RSWChest;
+import joserodpt.realskywars.api.chests.RSWGroupedChest;
 import joserodpt.realskywars.api.config.RSWMapsConfig;
 import joserodpt.realskywars.api.config.TranslatableLine;
 import joserodpt.realskywars.api.config.TranslatableList;
@@ -112,11 +113,19 @@ public class MapManager extends MapManagerAPI {
                     Bukkit.getLogger().warning("[RealSkywars] There are no chests in " + worldName + " (possibly a bug? Check config pls!)");
                 }
 
+                Map<Integer, RSWGroupedChest.Group> chestGroups = new HashMap<>();
+                for(RSWChest chest : chests.values()) {
+                    if(chest instanceof RSWGroupedChest) {
+                        RSWGroupedChest.Group group = ((RSWGroupedChest) chest).getGroup();
+                        chestGroups.putIfAbsent(group.id, group);
+                    }
+                }
+
                 World w = Bukkit.getWorld(worldName);
 
                 switch (RSWMap.GameMode.valueOf(modeSTR)) {
                     case SOLO:
-                        SoloMode gs = new SoloMode(s, displayName, w, RSWMapsConfig.file().getString(s + ".schematic"), wt, RSWMap.MapState.AVAILABLE, cgs, RSWMapsConfig.file().getInt(s + ".number-of-players"), specLoc, isSpecEnabled(s), isInstantEndingEnabled(s), RSWMapsConfig.file().getBoolean(s + ".Settings.Border"), getPOS1(w, s), getPOS2(w, s), chests, isRanked(s), unregistered);
+                        SoloMode gs = new SoloMode(s, displayName, w, RSWMapsConfig.file().getString(s + ".schematic"), wt, RSWMap.MapState.AVAILABLE, cgs, RSWMapsConfig.file().getInt(s + ".number-of-players"), specLoc, isSpecEnabled(s), isInstantEndingEnabled(s), RSWMapsConfig.file().getBoolean(s + ".Settings.Border"), getPOS1(w, s), getPOS2(w, s), chests, chestGroups, isRanked(s), unregistered);
                         gs.resetArena(RSWMap.OperationReason.LOAD);
                         this.addMap(gs);
                         break;
@@ -128,7 +137,7 @@ public class MapManager extends MapManagerAPI {
                         int teamSize = numberOfPlayers / cgs.size();
                         cgs.forEach((location, value) -> ts.put(location, new RSWTeam(tc.getAndIncrement(), teamSize, location)));
 
-                        TeamsMode teas = new TeamsMode(s, displayName, w, RSWMapsConfig.file().getString(s + ".schematic"), wt, RSWMap.MapState.AVAILABLE, ts, RSWMapsConfig.file().getInt(s + ".number-of-players"), specLoc, isSpecEnabled(s), isInstantEndingEnabled(s), RSWMapsConfig.file().getBoolean(s + ".Settings.Border"), getPOS1(w, s), getPOS2(w, s), chests, isRanked(s), unregistered);
+                        TeamsMode teas = new TeamsMode(s, displayName, w, RSWMapsConfig.file().getString(s + ".schematic"), wt, RSWMap.MapState.AVAILABLE, ts, RSWMapsConfig.file().getInt(s + ".number-of-players"), specLoc, isSpecEnabled(s), isInstantEndingEnabled(s), RSWMapsConfig.file().getBoolean(s + ".Settings.Border"), getPOS1(w, s), getPOS2(w, s), chests, chestGroups, isRanked(s), unregistered);
                         teas.resetArena(RSWMap.OperationReason.LOAD);
                         this.addMap(teas);
                         break;
@@ -236,6 +245,7 @@ public class MapManager extends MapManagerAPI {
     @Override
     protected Map<Location, RSWChest> getMapChests(String worldName, String section) {
         Map<Location, RSWChest> chests = new HashMap<>();
+        Map<Integer, RSWGroupedChest.Group> chestGroups = new HashMap<>();
         if (RSWMapsConfig.file().isSection(section + ".Chests")) {
             for (String i : RSWMapsConfig.file().getSection(section + ".Chests").getRoutesAsStrings(false)) {
                 int x = RSWMapsConfig.file().getInt(section + ".Chests." + i + ".LocationX");
@@ -251,7 +261,13 @@ public class MapManager extends MapManagerAPI {
                     ct = RSWChest.Type.NORMAL;
                 }
 
-                chests.put(new Location(Bukkit.getWorld(worldName), x, y, z), new RSWChest(ct, worldName, x, y, z, f));
+                Optional<Integer> groupId = RSWMapsConfig.file().getOptionalInt(section + ".Chests." + i + ".Group");
+                if(groupId.isPresent()) {
+                    RSWGroupedChest.Group group = chestGroups.computeIfAbsent(groupId.get(), RSWGroupedChest.Group::new);
+                    chests.put(new Location(Bukkit.getWorld(worldName), x, y, z), new RSWGroupedChest(ct, worldName, x, y, z, f, group));
+                } else {
+                    chests.put(new Location(Bukkit.getWorld(worldName), x, y, z), new RSWChest(ct, worldName, x, y, z, f));
+                }
             }
         } else {
             Debugger.print(MapManager.class, "There are no chests in " + worldName + " (possibly a bug? Check config pls!)");

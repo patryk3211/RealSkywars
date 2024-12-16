@@ -18,6 +18,7 @@ package joserodpt.realskywars.api.map;
 import joserodpt.realskywars.api.RealSkywarsAPI;
 import joserodpt.realskywars.api.cages.RSWCage;
 import joserodpt.realskywars.api.chests.RSWChest;
+import joserodpt.realskywars.api.chests.RSWGroupedChest;
 import joserodpt.realskywars.api.config.RSWConfig;
 import joserodpt.realskywars.api.config.RSWMapsConfig;
 import joserodpt.realskywars.api.config.TranslatableLine;
@@ -29,13 +30,7 @@ import joserodpt.realskywars.api.map.modes.teams.RSWTeam;
 import joserodpt.realskywars.api.player.RSWPlayer;
 import joserodpt.realskywars.api.player.RSWPlayerItems;
 import joserodpt.realskywars.api.player.tab.RSWPlayerTabInterface;
-import joserodpt.realskywars.api.utils.BungeecordUtils;
-import joserodpt.realskywars.api.utils.CountdownTimer;
-import joserodpt.realskywars.api.utils.Demolition;
-import joserodpt.realskywars.api.utils.Itens;
-import joserodpt.realskywars.api.utils.MapCuboid;
-import joserodpt.realskywars.api.utils.MathUtils;
-import joserodpt.realskywars.api.utils.Text;
+import joserodpt.realskywars.api.utils.*;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -81,7 +76,8 @@ public abstract class RSWMap {
 
     private final RSWWorld world;
     private MapCuboid mapCuboid;
-    private final Map<Location, RSWChest> chests;
+    public final Map<Location, RSWChest> chests;
+    private final Map<Integer, RSWGroupedChest.Group> chestGroups;
     private final Map<Location, RSWSign> signs;
     private WorldBorder border;
 
@@ -98,7 +94,7 @@ public abstract class RSWMap {
     private final Map<UUID, Integer> projectileVotes = new HashMap<>();
     private final Map<UUID, Integer> timeVotes = new HashMap<>();
 
-    public RSWMap(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean borderEnabled, Location pos1, Location pos2, Map<Location, RSWChest> chests, Boolean rankd, Boolean unregistered) {
+    public RSWMap(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean borderEnabled, Location pos1, Location pos2, Map<Location, RSWChest> chests, Map<Integer, RSWGroupedChest.Group> chestGroups, Boolean rankd, Boolean unregistered) {
         this.name = nome;
         this.displayName = displayName;
         this.schematicName = schematicName;
@@ -150,6 +146,7 @@ public abstract class RSWMap {
         this.borderEnabled = borderEnabled;
 
         this.chests = chests;
+        this.chestGroups = chestGroups;
         this.ranked = rankd;
 
         this.events = parseEvents();
@@ -170,12 +167,17 @@ public abstract class RSWMap {
         this.world = null;
         this.mapCuboid = null;
         this.chests = null;
+        this.chestGroups = null;
         this.signs = null;
         this.maxPlayers = -1;
         this.border = null;
         this.borderSize = -1;
         this.spectatorLocation = null;
         this.schematicName = "";
+    }
+
+    public RSWGroupedChest.Group getChestGroup(int id) {
+        return chestGroups.computeIfAbsent(id, RSWGroupedChest.Group::new);
     }
 
     public String forceStart(RSWPlayer p) {
@@ -447,11 +449,6 @@ public abstract class RSWMap {
 
                 this.sendLog(p, false);
 
-                //click to play again
-                TextComponent component = new TextComponent(TextComponent.fromLegacyText(" > " + TranslatableLine.PLAY_AGAIN.get(p)));
-                component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rsw play " + this.getGameMode().name().toLowerCase()));
-                p.getPlayer().spigot().sendMessage(component);
-
                 this.checkWin();
                 break;
             case EXTERNAL:
@@ -647,50 +644,18 @@ public abstract class RSWMap {
             RealSkywarsAPI.getInstance().getDatabaseManagerAPI().saveNewGameHistory(new PlayerGameHistoryRow(p.getPlayer(), this.getName(), this.getGameMode().name(), this.isRanked(), this.getStartingPlayers(), p.getStatistics(RSWPlayer.PlayerStatistics.GAME_KILLS), winner, this.getTimePassed()), true);
 
             p.saveData(RSWPlayer.PlayerData.GAME);
+
+            // Here we save score for tournament results
+            TournamentUtils.get().rankPlayer(p);
         }
     }
 
     abstract public void forceStartMap();
 
     protected void calculateVotes() {
-        //chest calculate
-        int bigger = MathUtils.mostFrequentElement(getChestVotes().values());
-        switch (bigger) {
-            case 1:
-                this.setTierType(RSWChest.Tier.BASIC);
-                break;
-            case 3:
-                this.setTierType(RSWChest.Tier.EPIC);
-                break;
-            default:
-                this.setTierType(RSWChest.Tier.NORMAL);
-                break;
-        }
-
-        //projectile calculate
-        bigger = MathUtils.mostFrequentElement(getProjectileVotes().values());
-        if (bigger == 2) {
-            this.setProjectiles(ProjectileType.BREAK_BLOCKS);
-        } else {
-            this.setProjectiles(ProjectileType.NORMAL);
-        }
-
-        //time calculate
-        bigger = MathUtils.mostFrequentElement(getTimeVotes().values());
-        switch (bigger) {
-            case 2:
-                this.setTime(TimeType.SUNSET);
-                break;
-            case 3:
-                this.setTime(TimeType.NIGHT);
-                break;
-            case 4:
-                this.setTime(TimeType.RAIN);
-                break;
-            default:
-                this.setTime(TimeType.DAY);
-                break;
-        }
+        this.setTierType(RSWChest.Tier.NORMAL);
+        this.setProjectiles(ProjectileType.NORMAL);
+        this.setTime(TimeType.DAY);
     }
 
     protected void cancelMapStart() {
@@ -1062,6 +1027,10 @@ public abstract class RSWMap {
                     }
                     RSWMapsConfig.file().set(this.getName() + ".Chests." + chestID + ".Face", face);
                     RSWMapsConfig.file().set(this.getName() + ".Chests." + chestID + ".Type", chest.getType().name());
+                    if(chest instanceof RSWGroupedChest) {
+                        RSWGroupedChest.Group group = ((RSWGroupedChest) chest).getGroup();
+                        RSWMapsConfig.file().set(this.getName() + ".Chests." + chestID + ".Group", group.id);
+                    }
                     ++chestID;
                 }
                 break;

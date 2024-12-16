@@ -80,14 +80,12 @@ public class RealSkywarsCMD extends CommandBase {
 
     @Default
     @SuppressWarnings("unused")
+    @Permission("rsw.admin")
     public void defaultCommand(final CommandSender commandSender) {
         if (commandSender instanceof Player) {
             RSWPlayer p = rs.getPlayerManagerAPI().getPlayer((Player) commandSender);
             if (p.getPlayer().isOp() || p.getPlayer().hasPermission("rsw.admin")) {
                 GUIManager.openPluginMenu(p, rs);
-            } else {
-                MapsListGUI v = new MapsListGUI(p);
-                v.openInventory(p);
             }
         } else {
             Text.send(commandSender, "&f&lReal&B&LSkywars &r&6Version &e" + rs.getPlugin().getDescription().getVersion());
@@ -223,32 +221,6 @@ public class RealSkywarsCMD extends CommandBase {
             ShopGUI ss = new ShopGUI(p, RSWBuyableItem.ItemCategory.SPEC_SHOP);
             ss.openInventory(p);
             p.getPlayer().playSound(p.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 50, 50);
-        } else {
-            commandSender.sendMessage(onlyPlayer);
-        }
-    }
-
-    @SubCommand("play")
-    @Completion("#enum")
-    @SuppressWarnings("unused")
-    public void playcmd(final CommandSender commandSender, RSWMap.GameMode type) {
-        if (commandSender instanceof Player) {
-            Player pobj = (Player) commandSender;
-            if (RSWConfig.file().getBoolean("Config.Bungeecord.Enabled")) {
-                pobj.kickPlayer(TranslatableLine.BUNGEECORD_KICK_MESSAGE.getSingle());
-                return;
-            }
-
-            RSWPlayer p = rs.getPlayerManagerAPI().getPlayer(pobj);
-            if (type != null && p != null && p.getPlayer() != null) {
-                if (!(p.getState() == RSWPlayer.PlayerState.CAGE)) {
-                    rs.getMapManagerAPI().findNextMap(p, type);
-                } else {
-                    TranslatableLine.CMD_ALREADY_IN_MATCH.send(p, true);
-                }
-            } else {
-                TranslatableLine.CMD_NO_MAP_FOUND.send(p, true);
-            }
         } else {
             commandSender.sendMessage(onlyPlayer);
         }

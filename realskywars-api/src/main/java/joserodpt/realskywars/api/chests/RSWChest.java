@@ -57,7 +57,7 @@ public class RSWChest {
     private final BlockFace bf;
     private final RSWHologram hologram;
     private List<RSWChestItem> items = new ArrayList<>();
-    private Boolean opened = false;
+    protected Boolean opened = false;
     private int maxItemsPerChest;
     private CountdownTimer chestCTD;
 
@@ -92,6 +92,10 @@ public class RSWChest {
         this.items.clear();
         this.items = chest;
         this.maxItemsPerChest = maxItemsPerChest;
+    }
+
+    public BlockFace getFace() {
+        return this.bf;
     }
 
     public Type getType() {
