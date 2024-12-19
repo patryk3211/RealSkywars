@@ -37,12 +37,20 @@ public enum RSWPlayerItems {
                 if (RSWConfig.file().getBoolean("Config.Disable-Lobby-Items", false)) {
                     return;
                 }
-                p.getInventory().clear();
+                if(!p.getPlayer().hasPermission("rsw.tournament"))
+                    p.getInventory().clear();
                 p.getInventory().setItem(RSWConfig.file().getInt("Config.Item-Slots.Lobby.Profile"), ITEM_PROFILE.get(p));
                 break;
             case SPECTATOR:
-                p.getInventory().clear();
+                if(!p.getPlayer().hasPermission("rsw.tournament"))
+                    p.getInventory().clear();
                 p.getInventory().setItem(RSWConfig.file().getInt("Config.Item-Slots.Spectator.Spectate"), ITEM_SPECTATE.get(p));
+                if(p.getPlayer().hasPermission("rsw.tournament")) {
+                    p.getInventory().setItem(1, Itens.createItem(Material.BARRIER, 1, "Shrink border"));
+                    p.getInventory().setItem(2, Itens.createItem(Material.DIAMOND_SWORD, 1, "Teleport to last combat"));
+                    p.getInventory().setItem(3, Itens.createItem(Material.WOODEN_SWORD, 1, "Teleport to last damaged player"));
+                    p.getInventory().setItem(4, Itens.createItem(Material.ENDER_EYE, 1, "Teleport to random player"));
+                }
                 break;
             case SETUP:
                 p.getInventory().clear();

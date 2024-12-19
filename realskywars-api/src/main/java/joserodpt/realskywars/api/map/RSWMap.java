@@ -94,6 +94,9 @@ public abstract class RSWMap {
     private final Map<UUID, Integer> projectileVotes = new HashMap<>();
     private final Map<UUID, Integer> timeVotes = new HashMap<>();
 
+    public RSWPlayer lastCombatPlayer;
+    public RSWPlayer lastDamagedPlayer;
+
     public RSWMap(String nome, String displayName, World w, String schematicName, RSWWorld.WorldType wt, MapState estado, int maxPlayers, Location spectatorLocation, Boolean specEnabled, Boolean instantEnding, Boolean borderEnabled, Location pos1, Location pos2, Map<Location, RSWChest> chests, Map<Integer, RSWGroupedChest.Group> chestGroups, Boolean rankd, Boolean unregistered) {
         this.name = nome;
         this.displayName = displayName;
@@ -498,6 +501,8 @@ public abstract class RSWMap {
 
     public void reset() {
         this.setState(MapState.RESETTING);
+        this.lastCombatPlayer = null;
+        this.lastDamagedPlayer = null;
 
         this.kickPlayers(null);
         this.resetArena(OperationReason.RESET);

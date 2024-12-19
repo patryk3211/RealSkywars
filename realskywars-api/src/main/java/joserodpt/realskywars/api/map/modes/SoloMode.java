@@ -15,6 +15,7 @@ package joserodpt.realskywars.api.map.modes;
  * @link https://github.com/joserodpt/RealSkywars
  */
 
+import joserodpt.realskywars.api.Debugger;
 import joserodpt.realskywars.api.cages.RSWCage;
 import joserodpt.realskywars.api.cages.RSWSoloCage;
 import joserodpt.realskywars.api.chests.RSWChest;
@@ -82,7 +83,12 @@ public class SoloMode extends RSWMap {
 
                     p.getPlayerKit().give(p);
                     p.setState(RSWPlayer.PlayerState.PLAYING);
-                    p.getPlayerCage().open();
+                    RSWCage cage = p.getPlayerCage();
+                    if(cage != null) {
+                        cage.open();
+                    } else {
+                        Debugger.printerr(SoloMode.class, "Player cage is null");
+                    }
                 }
             }
 

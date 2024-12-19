@@ -53,6 +53,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.List;
 import java.util.Optional;
 
 public class PlayerListener implements Listener {
@@ -165,6 +166,52 @@ public class PlayerListener implements Listener {
                                         e.setCancelled(true);
                                         e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 50, 50);
                                         GUIManager.openSpectate(p);
+                                        break;
+                                    case BARRIER:
+                                        e.setCancelled(true);
+                                        if(e.getPlayer().hasPermission("rsw.tournament")) {
+                                            e.getPlayer().performCommand("worldborder set 20 30");
+                                        }
+                                        break;
+                                    case DIAMOND_SWORD:
+                                        e.setCancelled(true);
+                                        if(e.getPlayer().hasPermission("rsw.tournament")) {
+                                            RSWPlayer player = RealSkywarsAPI.getInstance().getPlayerManagerAPI().getPlayer(e.getPlayer());
+                                            if(player != null && player.isInMatch()) {
+                                                RSWPlayer target = player.getMatch().lastCombatPlayer;
+                                                if(target != null && target.getPlayer() != null) {
+                                                    player.teleport(target.getLocation());
+                                                    player.sendMessage("Teleported to " + target.getDisplayName());
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    case WOODEN_SWORD:
+                                        e.setCancelled(true);
+                                        if(e.getPlayer().hasPermission("rsw.tournament")) {
+                                            RSWPlayer player = RealSkywarsAPI.getInstance().getPlayerManagerAPI().getPlayer(e.getPlayer());
+                                            if(player != null && player.isInMatch()) {
+                                                RSWPlayer target = player.getMatch().lastDamagedPlayer;
+                                                if(target != null && target.getPlayer() != null) {
+                                                    player.teleport(target.getLocation());
+                                                    player.sendMessage("Teleported to " + target.getDisplayName());
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    case ENDER_EYE:
+                                        e.setCancelled(true);
+                                        if(e.getPlayer().hasPermission("rsw.tournament")) {
+                                            RSWPlayer player = RealSkywarsAPI.getInstance().getPlayerManagerAPI().getPlayer(e.getPlayer());
+                                            if(player != null && player.isInMatch()) {
+                                                List<RSWPlayer> players = player.getMatch().getPlayers();
+                                                RSWPlayer target = players.get(RealSkywarsAPI.getInstance().getRandom().nextInt(players.size()));
+                                                if(target != null && target.getPlayer() != null) {
+                                                    player.teleport(target.getLocation());
+                                                    player.sendMessage("Teleported to " + target.getDisplayName());
+                                                }
+                                            }
+                                        }
                                         break;
                                     case EMERALD:
                                         e.setCancelled(true);
@@ -366,6 +413,11 @@ public class PlayerListener implements Listener {
                     if (damaged.getMatch().getState() == RSWMap.MapState.PLAYING) {
                         damaged.addStatistic(RSWPlayer.Statistic.DEATH, 1, damaged.getMatch().isRanked());
 
+                        List<RSWPlayer> players = damaged.getMatch().getAllPlayers();
+                        for(RSWPlayer rcv : players) {
+                            Text.send(rcv.getPlayer(), "&b" + damaged.getDisplayName() + "&f has fallen in to the void");
+                        }
+
                         Bukkit.getScheduler().scheduleSyncDelayedTask(rs.getPlugin(), () -> {
                             damaged.getPlayer().spigot().respawn();
                             damaged.getMatch().spectate(damaged, RSWMap.SpectateType.INSIDE_GAME, damaged.getMatch().getSpectatorLocation());
@@ -373,15 +425,23 @@ public class PlayerListener implements Listener {
                     } else {
                         damaged.teleport(damaged.getMatch().getSpectatorLocation());
                     }
-
                 } else {
                     e.setCancelled(true);
                     damaged.heal();
                     rs.getLobbyManagerAPI().tpToLobby(damaged);
                 }
+
+                if(damaged.isInMatch()) {
+                    System.out.println("Player " + damaged.getDisplayName() + " damaged by void");
+                }
             } else {
                 if (damaged.isInvencible() || rs.getLobbyManagerAPI().isInLobby(damaged.getLocation().getWorld())) {
                     e.setCancelled(true);
+                } else {
+                    if(damaged.isInMatch()) {
+                        System.out.println("Player " + damaged.getDisplayName() + " damaged");
+                        damaged.getMatch().lastDamagedPlayer = damaged;
+                    }
                 }
             }
         }
@@ -417,6 +477,17 @@ public class PlayerListener implements Listener {
         if (killed.isInMatch() && killed.getMatch().getState().equals(RSWMap.MapState.PLAYING)) {
             killed.addStatistic(RSWPlayer.Statistic.DEATH, 1, killed.getMatch().isRanked());
 
+            List<RSWPlayer> players = killed.getMatch().getAllPlayers();
+            String message;
+            if(pkiller != null) {
+                message = "&b" + pkilled.getDisplayName() + "&f has been killed by &b" + pkiller.getDisplayName();
+            } else {
+                message = "&b" + pkilled.getDisplayName() + "&f has been eliminated";
+            }
+            for (RSWPlayer rcv : players) {
+                Text.send(rcv.getPlayer(), message);
+            }
+
             Location finalDeathLoc = deathLoc;
             Bukkit.getScheduler().scheduleSyncDelayedTask(rs.getPlugin(), () -> {
                 if (killed.getPlayer() != null) {
@@ -446,6 +517,17 @@ public class PlayerListener implements Listener {
             }
             if (hitter.getState() == RSWPlayer.PlayerState.SPECTATOR || hitter.getState() == RSWPlayer.PlayerState.EXTERNAL_SPECTATOR) {
                 e.setCancelled(true);
+            }
+
+            if(hurt.isInMatch() && !e.isCancelled()) {
+                System.out.println("Player " + hurt.getDisplayName() + " hit by " + hitter.getDisplayName());
+                List<RSWPlayer> players = hurt.getMatch().getSpectators();
+                for(RSWPlayer p : players) {
+                    if(p.getState() != RSWPlayer.PlayerState.EXTERNAL_SPECTATOR)
+                        continue;
+                    Text.send(p.getPlayer(), "&fPlayer &b" + hurt.getDisplayName() + "&f hit by &b" + hitter.getDisplayName());
+                }
+                hitter.getMatch().lastCombatPlayer = hitter;
             }
         }
     }

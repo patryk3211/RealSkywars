@@ -34,7 +34,8 @@ public class Pagination<T> extends ArrayList<T> {
 
     public Pagination(int pageSize, List<T> objects) {
         this.pageSize = pageSize;
-        addAll(objects);
+        if(objects != null)
+            addAll(objects);
     }
 
     public int pageSize() {

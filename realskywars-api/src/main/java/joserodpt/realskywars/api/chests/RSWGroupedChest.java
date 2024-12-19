@@ -73,6 +73,7 @@ public class RSWGroupedChest extends RSWChest {
             for(int i = 0; i < Math.min(inventory.getSize(), items.length); ++i) {
                 if(items[i] == null) {
                     inventory.setItem(i, null);
+                    continue;
                 }
                 inventory.setItem(i, items[i].clone());
             }

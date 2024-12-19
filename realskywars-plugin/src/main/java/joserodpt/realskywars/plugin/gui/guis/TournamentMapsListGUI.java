@@ -104,14 +104,21 @@ public class TournamentMapsListGUI {
                                 // Put all players into the selected map
                                 Collection<RSWPlayer> players = RealSkywarsAPI.getInstance().getPlayerManagerAPI().getPlayers();
                                 int playerCount = 0;
+                                List<RSWPlayer> spectators = new LinkedList<>();
                                 for (RSWPlayer player : players) {
                                     if (player.getPlayer().hasPermission("rsw.tournament.spectator")) {
-                                        a.spectate(player, RSWMap.SpectateType.EXTERNAL, null);
+                                        spectators.add(player);
                                     } else {
                                         a.addPlayer(player);
                                         ++playerCount;
                                     }
+                                    if(playerCount >= 12)
+                                        break;
                                 }
+                                for(RSWPlayer player : spectators) {
+                                    a.spectate(player, RSWMap.SpectateType.EXTERNAL, null);
+                                }
+
                                 TournamentUtils.get().newGame(playerCount, a);
                                 p.closeInventory();
                             }
